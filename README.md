@@ -74,17 +74,41 @@ $ gpm install
 It is recommended to keep a healthy and exhaustive `Godeps` file in the root of all Go project that use external dependencies,
 this way any project includes the documentation required to be built correctly at any point in time.
 
+## Vendoring Packages
+
+`gpm install` accepts an optional `--path` parameter which allows you to specify the location of where you would like your Go packages to be installed.
+
+```bash
+$ gpm install --path=vendor
+Vendoring to /path/to/my/project/vendor
+>> Getting package github.com/nu7hatch/gotrail
+>> Getting package github.com/replicon/fast-archiver
+>> Getting package launchpad.net/gocheck
+>> Getting package code.google.com/p/go.example/hello/...
+>> Setting github.com/nu7hatch/gotrail to version v0.0.2
+>> Setting github.com/replicon/fast-archiver to version v1.02
+>> Setting code.google.com/p/go.example/hello/... to version ae081cd1d6cc
+>> Setting launchpad.net/gocheck to version r2013.03.03
+>> All Done
+```
+You may now execute your Go programs in the context of your locally vendored Go packages using the `gpm exec` command
+
+```bash
+$ gpm exec go run main.go
+```
 
 ### Commands
 
 gpm has the following commands:
 
 ```bash
-$ gpm             # Same as 'install'.
-$ gpm install     # Parses the Godeps file, installs dependencies and sets
-                  # them to the appropriate version.
-$ gpm version     # Outputs version information
-$ gpm help        # Prints this message
+$ gpm                         # Same as 'install'.
+$ gpm install [--path=<path>] # Parses the Godeps file, installs dependencies and sets
+                              # them to the appropriate version. Optionally allows Godeps
+                              # to be locally vendored to the specified path
+$ gpm exec                    # Executes commands in the context of a locally vendored GOPATH if it exists
+$ gpm version                 # Outputs version information
+$ gpm help                    # Prints this message
 ```
 
 ### Plugins
