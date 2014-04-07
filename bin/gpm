@@ -65,7 +65,7 @@ set_dependencies() {
 ## /Functions
 case "${1:-"install"}" in
   "exec")
-    if [ -a "`pwd`/.gpm" ]
+    if [[ -a "`pwd`/.gpm" ]]
     then
       while read line
       do
@@ -107,14 +107,19 @@ case "${1:-"install"}" in
         echo $vendor > .gpm
         mkdir -p $vendor/{src,pkg,bin}
       else
-        vendor=$GOPATH
-        echo "Installing to system GOPATH $vendor"
+        if [[ -a "`pwd`/.gpm" ]]
+        then
+          while read line
+          do
+            vendor=$line
+            break
+          done < "`pwd`/.gpm"
+          echo "Installing to $vendor"
+        else
+          vendor=$GOPATH
+          echo "Installing to system GOPATH $vendor"
+        fi
       fi
-      while read line
-      do
-        vendor=$line
-        break
-      done < "`pwd`/.gpm"
 
     set_dependencies $deps_file $vendor
     ;;
