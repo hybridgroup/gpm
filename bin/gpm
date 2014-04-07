@@ -30,6 +30,7 @@ USAGE
       $ gpm install [--path=<path>] # Parses the Godeps file, installs dependencies and sets
                                     # them to the appropriate version. Optionally allows Godeps
                                     # to be locally vendored to the specified path
+      $ gpm exec                    # Executes commands in the context of a locally vendored GOPATH if it exists
       $ gpm version                 # Outputs version information
       $ gpm help                    # Prints this message
 EOF
@@ -63,6 +64,20 @@ set_dependencies() {
 
 ## /Functions
 case "${1:-"install"}" in
+  "exec")
+    if [ -a "`pwd`/.gpm" ]
+    then
+      while read line
+      do
+        vendor=$line
+        break
+      done < "`pwd`/.gpm"
+      GOPATH=$vendor GOBIN=$vendor/bin PATH=$vendor/bin:$PATH $@
+    else
+      echo "Vendor path not set in your .gpm! Using system GOPATH...."
+      $@
+    fi
+    ;;
   "version")
     echo ">> gpm v1.2.0"
     ;;
