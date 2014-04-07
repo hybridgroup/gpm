@@ -26,11 +26,12 @@ SYNOPSIS
     has its own isolated dependency directory, it's usage is recommended.
 
 USAGE
-      $ gpm             # Same as 'install'.
-      $ gpm install     # Parses the Godeps file, installs dependencies and sets
-                        # them to the appropriate version.
-      $ gpm version     # Outputs version information
-      $ gpm help        # Prints this message
+      $ gpm                         # Same as 'install'.
+      $ gpm install [--path=<path>] # Parses the Godeps file, installs dependencies and sets
+                                    # them to the appropriate version. Optionally allows Godeps
+                                    # to be locally vendored to the specified path
+      $ gpm version                 # Outputs version information
+      $ gpm help                    # Prints this message
 EOF
 }
 
@@ -38,15 +39,16 @@ EOF
 # the specified version on each of them.
 set_dependencies() {
   deps=$(sed 's/#.*//;/^\s*$/d' < $1) || echo ""
+  gopath=$2
 
   while read package version; do
     (
-      install_path="${GOPATH%%:*}/src/${package%%/...}"
+      install_path="${gopath%%:*}/src/${package%%/...}"
       [[ -e "$install_path/.git/index.lock" ||
          -e "$install_path/.hg/store/lock"  ||
          -e "$install_path/.bzr/checkout/lock" ]] && wait
       echo ">> Getting package "$package""
-      go get -u -d "$package"
+      GOPATH=$gopath go get -u -d "$package"
       echo ">> Setting $package to version $version"
       cd $install_path
       [ -d .hg ]  && hg update    -q      "$version"
@@ -66,11 +68,40 @@ case "${1:-"install"}" in
     ;;
   "install")
     deps_file="Godeps"
-    [[ "$#" -eq 2 ]] && [[ -n "$2" ]] && deps_file="$2"
-    [[ -f "$deps_file" ]] || (echo ">> $deps_file file does not exist." && exit 1)
+    vendor=""
+    for PARAM in "${@:2}" ; do
+      case $PARAM in
+        --path=*)
+          vendor=${PARAM:7}
+          shift ;;
+        *)
+          [[ -n "$PARAM" ]] && deps_file="$PARAM"
+          [[ -f "$deps_file" ]] || (echo ">> $deps_file file does not exist." && exit 1)
+          shift ;;
+      esac
+    done
     (which go > /dev/null) ||
       ( echo ">> Go is currently not installed or in your PATH" && exit 1)
-    set_dependencies $deps_file
+      if [[ -n $vendor ]]
+      then
+        if [ "$(echo "$vendor" | cut -c1)" != "/" ];
+        then
+          vendor=`pwd`/$vendor
+        fi
+        echo "Vendoring to $vendor"
+        echo $vendor > .gpm
+        mkdir -p $vendor/{src,pkg,bin}
+      else
+        vendor=$GOPATH
+        echo "Installing to system GOPATH $vendor"
+      fi
+      while read line
+      do
+        vendor=$line
+        break
+      done < "`pwd`/.gpm"
+
+    set_dependencies $deps_file $vendor
     ;;
   "help")
     usage
