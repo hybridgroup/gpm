@@ -56,10 +56,12 @@ Godeps  foo.go  foo_test.go
 $ cat Godeps
 github.com/nu7hatch/gotrail               v0.0.2
 github.com/replicon/fast-archiver         v1.02
+myrepo.com/my/project                     .             # Local source
 launchpad.net/gocheck                     r2013.03.03   # Bazaar repositories are supported
 code.google.com/p/go.example/hello/...    ae081cd1d6cc  # And so are Mercurial ones
 
 $ gpm install
+>> Installing myrepo.com/my/project from .
 >> Getting package github.com/nu7hatch/gotrail
 >> Getting package github.com/replicon/fast-archiver
 >> Getting package launchpad.net/gocheck
