@@ -64,7 +64,7 @@ set_dependencies() {
          done < "`pwd`/.gpm"
         fi
 
-        cp -rfv `ls -A | grep -vE "$(basename $vendor)"` $install_path
+        cp -rf `ls -A | grep -vE "$(basename $vendor)"` $install_path
       else
         [[ -e "$install_path/.git/index.lock" ||
            -e "$install_path/.hg/store/lock"  ||
