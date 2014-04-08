@@ -42,17 +42,29 @@ set_dependencies() {
   while read package version; do
     (
       install_path="${GOPATH%%:*}/src/${package%%/...}"
-      [[ -e "$install_path/.git/index.lock" ||
-         -e "$install_path/.hg/store/lock"  ||
-         -e "$install_path/.bzr/checkout/lock" ]] && wait
-      echo ">> Getting package "$package""
-      go get -u -d "$package"
-      echo ">> Setting $package to version $version"
-      cd $install_path
-      [ -d .hg ]  && hg update    -q      "$version"
-      [ -d .git ] && git checkout -q      "$version"
-      [ -d .bzr ] && bzr revert   -q -r   "$version"
-      [ -d .svn ] && svn update   -r      "$version"
+      local="$(echo "$version" | cut -c1)"
+      if [[ $local == "." || $local == "/" ]]
+      then
+        echo ">> Installing $package from $version"
+        if [ -d "$install_path" ]; then
+          rm -rf $install_path
+        fi
+        mkdir -p $install_path
+        cd $version
+        cp -rf . $install_path
+      else
+        [[ -e "$install_path/.git/index.lock" ||
+           -e "$install_path/.hg/store/lock"  ||
+           -e "$install_path/.bzr/checkout/lock" ]] && wait
+        echo ">> Getting package "$package""
+        go get -u -d "$package"
+        echo ">> Setting $package to version $version"
+        cd $install_path
+        [ -d .hg ]  && hg update    -q      "$version"
+        [ -d .git ] && git checkout -q      "$version"
+        [ -d .bzr ] && bzr revert   -q -r   "$version"
+        [ -d .svn ] && svn update   -r      "$version"
+      fi
     ) &
   done < <(echo "$deps")
   wait
