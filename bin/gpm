@@ -50,21 +50,10 @@ set_dependencies() {
       then
         echo ">> Installing $package from $version"
         if [ -d "$install_path" ]; then
-          rm -rf $install_path
+          rm $install_path
         fi
-        mkdir -p $install_path
-        cd $version
-
-        if [[ -a "`pwd`/.gpm" ]]
-        then
-         while read line
-         do
-           vendor=$line
-           break
-         done < "`pwd`/.gpm"
-        fi
-
-        cp -rf `ls -A | grep -vE "$(basename $vendor)"` $install_path
+        mkdir -p $(dirname $install_path)
+        ln -s $(readlink -f $version) $install_path
       else
         [[ -e "$install_path/.git/index.lock" ||
            -e "$install_path/.hg/store/lock"  ||
